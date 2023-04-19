@@ -7,6 +7,10 @@ use Phalcon\Mvc\Application;
 use Phalcon\Url;
 use Phalcon\Db\Adapter\Pdo\Mysql;
 use Phalcon\Config;
+use Phalcon\Session\Manager;
+use Phalcon\Session\Adapter\Stream;
+use Phalcon\Http\Response\Cookies;
+
 
 $config = new Config([]);
 
@@ -46,6 +50,8 @@ $container->set(
     }
 );
 
+
+
 $application = new Application($container);
 
 $container->set(
@@ -70,6 +76,33 @@ $container->set(
         return $mongo->selectDB('phalt');
     },
     true
+);
+
+$container->set(
+    'session',
+    function () {
+        $session = new Manager();
+        $files = new Stream(
+            [
+                'savePath' => '/tmp',
+            ]
+        );
+
+        $session
+            ->setAdapter($files)
+            ->start();
+
+        return $session;
+    }
+);
+
+$container->set(
+    'cookies',
+    function () {
+        $cookies = new Cookies();
+        $cookies->useEncryption(false);
+        return $cookies;
+    }
 );
 
 try {
